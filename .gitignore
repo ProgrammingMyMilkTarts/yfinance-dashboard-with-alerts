@@ -1,0 +1,8 @@
+# Ignore the Python virtual environment folder
+venv/
+
+# Ignore local environment secret files
+.env
+
+# Ignore Streamlit local secrets
+.streamlit/secrets.toml
