@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from dotenv import load_dotenv
 
 def get_db_engine():
-  load_dotenv()
+  load_dotenv(override = True)
   
   # Grab secrets securely from environment variables
   user = os.getenv('DB_USER')
