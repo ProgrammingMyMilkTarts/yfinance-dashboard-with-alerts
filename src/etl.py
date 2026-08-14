@@ -2,12 +2,15 @@
 import logging 
 import random
 import time
-from datetime import datetime 
 import pandas as pd
 import yfinance as yf
 from database import get_db_engine
+import os
+
 
 logging.basicConfig(level=logging.INFO)
+user = os.getenv('DB_USER')
+print(user)
 
 def run_bitcoin_etl():
     logging.info("Starting Bitcoin ETl")
@@ -42,5 +45,5 @@ def run_bitcoin_etl():
     
 
 
-if __name__ == "__main":
+if __name__ == "__main__":
     run_bitcoin_etl()
