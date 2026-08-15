@@ -1,7 +1,11 @@
+#database.py connect to postgres
+
 import os
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
 
+
+#databae connection
 def get_db_engine():
   load_dotenv(override = True)
   

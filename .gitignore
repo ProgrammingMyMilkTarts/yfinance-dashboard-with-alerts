@@ -6,3 +6,6 @@ venv/
 
 # Ignore Streamlit local secrets
 .streamlit/secrets.toml
+
+#ignore pycache
+__pycache__/
