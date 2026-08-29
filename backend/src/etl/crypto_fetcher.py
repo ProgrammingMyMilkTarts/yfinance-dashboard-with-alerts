@@ -1,49 +1,58 @@
-#etl.py: Fetches from yfinance $\rightarrow$ Cleans $\rightarrow$ Saves to Postgres $\rightarrow$ Checks threshold & sends WhatsApp if triggered $\rightarrow$ Scheduled via crontab
+#chrypto_fetcher.py: Fetches from yfinance $\rightarrow$ Cleans $\rightarrow$ Saves to Postgres $\rightarrow$ Checks threshold & sends WhatsApp if triggered $\rightarrow$ Scheduled via crontab
 import logging 
 import random
 import time
 import pandas as pd
 import yfinance as yf
-from backend.src.core.database import get_db_engine
+from backend.src.core.database import get_db_engine,save_crypto_price
 import os
 
 
-logging.basicConfig(level=logging.INFO)
-user = os.getenv('DB_USER')
-print(user)
+logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
+# Keep it focused on major cryptos
+TARGET_TICKERS = ["BTC-USD", "ETH-USD", "SOL-USD"]
 
-def run_bitcoin_etl():
+
+def run_crypto_fetcher():
     logging.info("Starting Bitcoin ETl")
 
     #sleep a random amount of seconds so i am not picked up by bots
-    time.sleep(random.uniform(1.0,5.0))
-
-    try:
-        print("Fetching data")
-        btc = yf.Ticker("BTC-USD")
-        df = btc.history(period = "1d")
-
-        if df.empty:
-            logging.warning("No data is found")
-            return
-        
-        df = df.reset_index()
-        df["Ticker"] = "BTC-USD"
-        df = df[["Date", "Ticker", "Open", "High", "Low", "Close", "Volume"]]
-
-        print("connecting to db")
-        engine = get_db_engine()
-
-        #df.to_sql('table_name', con=engine, if_exists='append', index=False)
-        print("Pushing data to postgres...")
-        df.to_sql('crypto_prices', con=engine, if_exists='append',index=False)
-        print('Successfully pushed')
-            
-    except Exception as e:
-        logging.error(f"ETL failed: {e}")
-
     
+    for symbol in TARGET_TICKERS:
+        try:
+            time.sleep(random.uniform(1.0,5.0))
 
+            print(f"Fetching data for {symbol}")
+            ticker = yf.Ticker(symbol)
+
+            df = ticker.history(period = "2d")
+
+            if df.empty or len(df)<1:
+                logging.warning(f"No data is found{symbol}")
+                continue
+
+            # Extract latest metrics
+            current_price = float(df['Close'].iloc[-1])
+            current_volume = float(df['Volume'].iloc[-1])
+
+            # Calculate 24h change if we have yesterday's data
+            change_24h = 0.0
+            if len(df)>=2:
+                prev_price = float(df['Close'].iloc[-2])
+                change_24h = ((current_price - prev_price) / prev_price) *100
+            
+            # Save directly using your new database function
+            saved_record = save_crypto_price(
+                symbol=symbol,
+                price=current_price,
+                change_24h=change_24h,
+                volume=current_volume
+            )
+
+            logging.info(f"Successfully saved {symbol}: ${current_price:,.2f} ({change_24h:+.2f}%)")                
+
+        except Exception as e:
+            logging.error(f"ETL failed: {e}")
 
 if __name__ == "__main__":
-    run_bitcoin_etl()
+    run_crypto_fetcher()
