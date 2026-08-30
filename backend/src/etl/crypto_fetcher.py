@@ -4,7 +4,7 @@ import random
 import time
 import pandas as pd
 import yfinance as yf
-from backend.src.core.database import get_db_engine,save_crypto_price
+from ..core.database import get_db_engine,save_crypto_price
 import os
 
 
