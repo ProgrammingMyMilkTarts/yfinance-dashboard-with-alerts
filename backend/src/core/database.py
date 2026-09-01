@@ -134,7 +134,7 @@ def get_db():
         db.close()
 
 
-def save_crypto_price(symbol: str, price: Float, change_24h: Float = None, volume: Float = None):
+def save_crypto_price(symbol: str, price: float, change_24h: Float = None, volume: Float = None):
     #Save a crypto price to database
     db = sessionlocal()
 
